@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini-Cloud Storage</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #38a169;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
+        }
+
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #e53e3e;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .path-display {
+            background: #f7fafc;
+            padding: 12px 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-family: monospace;
+            border-left: 4px solid #667eea;
+        }
+
+        .storage-info {
+            background: #ebf4ff;
+            padding: 15px 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .file-list {
+            list-style: none;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #e2e8f0;
+            transition: background 0.2s;
+        }
+
+        .file-item:hover {
+            background: #f7fafc;
+        }
+
+        .file-icon {
+            width: 40px;
+            height: 40px;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+        }
+
+        .file-info {
+            flex: 1;
+        }
+
+        .file-name {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 4px;
+            cursor: pointer;
+        }
+
+        .file-name:hover {
+            color: #667eea;
+        }
+
+        .file-meta {
+            font-size: 0.9em;
+            color: #718096;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .file-actions button {
+            padding: 6px 12px;
+            font-size: 0.9em;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 20px;
+            color: #2d3748;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #4a5568;
+            font-weight: 600;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #718096;
+        }
+
+        .empty-state-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>☁️ Mini-Cloud Storage</h1>
+            <p>Local Portable Storage System</p>
+        </div>
+
+        <div class="main-content">
+            <div class="storage-info" id="storageInfo">
+                <span>Loading storage info...</span>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                    📤 Upload File
+                </button>
+                <input type="file" id="fileInput" class="file-input" onchange="uploadFile()">
+                
+                <button class="btn btn-secondary" onclick="showCreateDirModal()">
+                    📁 New Folder
+                </button>
+                
+                <button class="btn btn-primary" onclick="refreshFiles()">
+                    🔄 Refresh
+                </button>
+            </div>
+
+            <div class="path-display">
+                Current Path: <strong id="currentPath">/</strong>
+            </div>
+
+            <div id="fileListContainer">
+                <div class="loading">Loading files...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Directory Modal -->
+    <div id="createDirModal" class="modal">
+        <div class="modal-content">
+            <h2>Create New Folder</h2>
+            <div class="input-group">
+                <label for="dirName">Folder Name:</label>
+                <input type="text" id="dirName" placeholder="Enter folder name">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="createDirectory()">Create</button>
+                <button class="btn" onclick="hideCreateDirModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        let currentPath = '';
+        let credentials = null;
+
+        // Prompt for credentials on load
+        function getCredentials() {
+            if (!credentials) {
+                const username = prompt('Enter username:', 'admin');
+                const password = prompt('Enter password:', 'admin');
+                if (username && password) {
+                    credentials = btoa(`${username}:${password}`);
+                }
+            }
+            return credentials;
+        }
+
+        async function fetchWithAuth(url, options = {}) {
+            const creds = getCredentials();
+            if (!creds) {
+                alert('Authentication required');
+                return null;
+            }
+
+            const headers = {
+                'Authorization': `Basic ${creds}`,
+                ...options.headers
+            };
+
+            const response = await fetch(url, { ...options, headers });
+            
+            if (response.status === 401) {
+                credentials = null;
+                alert('Invalid credentials. Please try again.');
+                return fetchWithAuth(url, options);
+            }
+
+            return response;
+        }
+
+        async function loadStorageInfo() {
+            try {
+                const response = await fetchWithAuth(`${API_BASE}/api/storage/info`);
+                if (!response) return;
+                
+                const data = await response.json();
+                const sizeInMB = (data.total_size / (1024 * 1024)).toFixed(2);
+                
+                document.getElementById('storageInfo').innerHTML = `
+                    <span><strong>${data.file_count}</strong> files</span>
+                    <span><strong>${sizeInMB} MB</strong> used</span>
+                `;
+            } catch (error) {
+                console.error('Error loading storage info:', error);
+            }
+        }
+
+        async function loadFiles(path = '') {
+            try {
+                currentPath = path;
+                document.getElementById('currentPath').textContent = path || '/';
+                
+                const response = await fetchWithAuth(`${API_BASE}/api/files?path=${encodeURIComponent(path)}`);
+                if (!response) return;
+                
+                const data = await response.json();
+                displayFiles(data.files);
+                await loadStorageInfo();
+            } catch (error) {
+                console.error('Error loading files:', error);
+                document.getElementById('fileListContainer').innerHTML = 
+                    '<div class="empty-state">Error loading files</div>';
+            }
+        }
+
+        function displayFiles(files) {
+            const container = document.getElementById('fileListContainer');
+            
+            if (files.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📂</div>
+                        <p>No files yet. Upload some files to get started!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '<ul class="file-list">';
+            
+            // Add parent directory link if not at root
+            if (currentPath) {
+                const parentPath = currentPath.split('/').slice(0, -1).join('/');
+                html += `
+                    <li class="file-item">
+                        <div class="file-icon">⬆️</div>
+                        <div class="file-info">
+                            <div class="file-name" onclick="loadFiles('${parentPath}')">.. (Parent Directory)</div>
+                        </div>
+                    </li>
+                `;
+            }
+            
+            files.forEach(file => {
+                const icon = file.is_directory ? '📁' : '📄';
+                const size = file.is_directory ? '' : formatFileSize(file.size);
+                const date = new Date(file.modified * 1000).toLocaleString();
+                
+                html += `
+                    <li class="file-item">
+                        <div class="file-icon">${icon}</div>
+                        <div class="file-info">
+                            <div class="file-name" onclick="${file.is_directory ? `loadFiles('${file.path}')` : ''}">${file.name}</div>
+                            <div class="file-meta">${size} • ${date}</div>
+                        </div>
+                        <div class="file-actions">
+                            ${!file.is_directory ? `<button class="btn btn-primary" onclick="downloadFile('${file.path}')">Download</button>` : ''}
+                            <button class="btn btn-danger" onclick="deleteFile('${file.path}', '${file.name}')">Delete</button>
+                        </div>
+                    </li>
+                `;
+            });
+            
+            html += '</ul>';
+            container.innerHTML = html;
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        async function uploadFile() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            
+            if (!file) return;
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                const response = await fetchWithAuth(
+                    `${API_BASE}/api/files/upload?path=${encodeURIComponent(currentPath)}`,
+                    {
+                        method: 'POST',
+                        body: formData
+                    }
+                );
+                
+                if (!response) return;
+                
+                if (response.ok) {
+                    alert('File uploaded successfully!');
+                    await loadFiles(currentPath);
+                } else {
+                    const error = await response.json();
+                    alert(`Upload failed: ${error.detail}`);
+                }
+            } catch (error) {
+                console.error('Error uploading file:', error);
+                alert('Error uploading file');
+            }
+            
+            fileInput.value = '';
+        }
+
+        async function downloadFile(path) {
+            const creds = getCredentials();
+            if (!creds) return;
+            
+            const url = `${API_BASE}/api/files/download?path=${encodeURIComponent(path)}`;
+            window.open(url, '_blank');
+        }
+
+        async function deleteFile(path, name) {
+            if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
+            
+            try {
+                const response = await fetchWithAuth(
+                    `${API_BASE}/api/files?path=${encodeURIComponent(path)}`,
+                    { method: 'DELETE' }
+                );
+                
+                if (!response) return;
+                
+                if (response.ok) {
+                    alert('Deleted successfully!');
+                    await loadFiles(currentPath);
+                } else {
+                    alert('Error deleting file');
+                }
+            } catch (error) {
+                console.error('Error deleting file:', error);
+                alert('Error deleting file');
+            }
+        }
+
+        function showCreateDirModal() {
+            document.getElementById('createDirModal').classList.add('active');
+            document.getElementById('dirName').focus();
+        }
+
+        function hideCreateDirModal() {
+            document.getElementById('createDirModal').classList.remove('active');
+            document.getElementById('dirName').value = '';
+        }
+
+        async function createDirectory() {
+            const dirName = document.getElementById('dirName').value.trim();
+            
+            if (!dirName) {
+                alert('Please enter a folder name');
+                return;
+            }
+            
+            const newPath = currentPath ? `${currentPath}/${dirName}` : dirName;
+            
+            try {
+                const response = await fetchWithAuth(
+                    `${API_BASE}/api/directories?path=${encodeURIComponent(newPath)}`,
+                    { method: 'POST' }
+                );
+                
+                if (!response) return;
+                
+                if (response.ok) {
+                    alert('Folder created successfully!');
+                    hideCreateDirModal();
+                    await loadFiles(currentPath);
+                } else {
+                    alert('Error creating folder');
+                }
+            } catch (error) {
+                console.error('Error creating directory:', error);
+                alert('Error creating folder');
+            }
+        }
+
+        function refreshFiles() {
+            loadFiles(currentPath);
+        }
+
+        // Initialize
+        loadFiles();
+
+        // Handle Enter key in directory name input
+        document.getElementById('dirName').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                createDirectory();
+            }
+        });
+
+        // Close modal on click outside
+        document.getElementById('createDirModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideCreateDirModal();
+            }
+        });
+    </script>
+</body>
+</html>
