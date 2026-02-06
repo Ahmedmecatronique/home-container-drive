@@ -61,6 +61,8 @@ async def list_files(
     try:
         files = storage_service.list_files(path)
         return {"files": files, "path": path}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -138,6 +140,8 @@ async def create_directory(
     try:
         result = storage_service.create_directory(path)
         return {"message": "Directory created successfully", "directory": result}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

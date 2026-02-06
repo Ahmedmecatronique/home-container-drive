@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings
 from typing import List
+import secrets
 
 
 class Settings(BaseSettings):
@@ -9,8 +10,8 @@ class Settings(BaseSettings):
     host: str = "0.0.0.0"
     port: int = 8000
     
-    # Security
-    secret_key: str = "your-secret-key-change-this-in-production"
+    # Security - Generate a random secret key if not provided
+    secret_key: str = secrets.token_urlsafe(32)
     api_username: str = "admin"
     api_password: str = "admin"
     

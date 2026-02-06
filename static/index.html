@@ -407,19 +407,19 @@
                 return;
             }
 
-            let html = '<ul class="file-list">';
+            const fileList = document.createElement('ul');
+            fileList.className = 'file-list';
             
             // Add parent directory link if not at root
             if (currentPath) {
                 const parentPath = currentPath.split('/').slice(0, -1).join('/');
-                html += `
-                    <li class="file-item">
-                        <div class="file-icon">⬆️</div>
-                        <div class="file-info">
-                            <div class="file-name" onclick="loadFiles('${parentPath}')">.. (Parent Directory)</div>
-                        </div>
-                    </li>
-                `;
+                const parentItem = createFileItem({
+                    icon: '⬆️',
+                    name: '.. (Parent Directory)',
+                    onClick: () => loadFiles(parentPath),
+                    actions: []
+                });
+                fileList.appendChild(parentItem);
             }
             
             files.forEach(file => {
@@ -427,23 +427,78 @@
                 const size = file.is_directory ? '' : formatFileSize(file.size);
                 const date = new Date(file.modified * 1000).toLocaleString();
                 
-                html += `
-                    <li class="file-item">
-                        <div class="file-icon">${icon}</div>
-                        <div class="file-info">
-                            <div class="file-name" onclick="${file.is_directory ? `loadFiles('${file.path}')` : ''}">${file.name}</div>
-                            <div class="file-meta">${size} • ${date}</div>
-                        </div>
-                        <div class="file-actions">
-                            ${!file.is_directory ? `<button class="btn btn-primary" onclick="downloadFile('${file.path}')">Download</button>` : ''}
-                            <button class="btn btn-danger" onclick="deleteFile('${file.path}', '${file.name}')">Delete</button>
-                        </div>
-                    </li>
-                `;
+                const actions = [];
+                if (!file.is_directory) {
+                    actions.push({
+                        text: 'Download',
+                        className: 'btn btn-primary',
+                        onClick: () => downloadFile(file.path)
+                    });
+                }
+                actions.push({
+                    text: 'Delete',
+                    className: 'btn btn-danger',
+                    onClick: () => deleteFile(file.path, file.name)
+                });
+                
+                const fileItem = createFileItem({
+                    icon: icon,
+                    name: file.name,
+                    meta: `${size} • ${date}`,
+                    onClick: file.is_directory ? () => loadFiles(file.path) : null,
+                    actions: actions
+                });
+                fileList.appendChild(fileItem);
             });
             
-            html += '</ul>';
-            container.innerHTML = html;
+            container.innerHTML = '';
+            container.appendChild(fileList);
+        }
+
+        function createFileItem(config) {
+            const li = document.createElement('li');
+            li.className = 'file-item';
+            
+            const iconDiv = document.createElement('div');
+            iconDiv.className = 'file-icon';
+            iconDiv.textContent = config.icon;
+            
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'file-info';
+            
+            const nameDiv = document.createElement('div');
+            nameDiv.className = 'file-name';
+            nameDiv.textContent = config.name;
+            if (config.onClick) {
+                nameDiv.style.cursor = 'pointer';
+                nameDiv.addEventListener('click', config.onClick);
+            }
+            
+            infoDiv.appendChild(nameDiv);
+            
+            if (config.meta) {
+                const metaDiv = document.createElement('div');
+                metaDiv.className = 'file-meta';
+                metaDiv.textContent = config.meta;
+                infoDiv.appendChild(metaDiv);
+            }
+            
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'file-actions';
+            
+            config.actions.forEach(action => {
+                const btn = document.createElement('button');
+                btn.className = action.className;
+                btn.textContent = action.text;
+                btn.addEventListener('click', action.onClick);
+                actionsDiv.appendChild(btn);
+            });
+            
+            li.appendChild(iconDiv);
+            li.appendChild(infoDiv);
+            li.appendChild(actionsDiv);
+            
+            return li;
         }
 
         function formatFileSize(bytes) {

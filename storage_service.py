@@ -3,19 +3,39 @@ import shutil
 from pathlib import Path
 from typing import List, Optional
 import aiofiles
-from fastapi import UploadFile
+from fastapi import UploadFile, HTTPException
 
 
 class FileStorageService:
     """Service for managing file storage operations"""
     
     def __init__(self, storage_path: str):
-        self.storage_path = Path(storage_path)
+        self.storage_path = Path(storage_path).resolve()
         self.storage_path.mkdir(parents=True, exist_ok=True)
+    
+    def _validate_path(self, path: str) -> Path:
+        """Validate that the path is within storage directory and resolve it"""
+        if not path:
+            return self.storage_path
+        
+        # Remove any leading slashes and resolve the path
+        clean_path = path.lstrip('/')
+        full_path = (self.storage_path / clean_path).resolve()
+        
+        # Ensure the path is within storage directory
+        try:
+            full_path.relative_to(self.storage_path)
+        except ValueError:
+            raise HTTPException(
+                status_code=400, 
+                detail="Invalid path: Path traversal detected"
+            )
+        
+        return full_path
     
     def list_files(self, path: str = "") -> List[dict]:
         """List all files and directories in the specified path"""
-        target_path = self.storage_path / path
+        target_path = self._validate_path(path)
         
         if not target_path.exists():
             return []
@@ -35,24 +55,36 @@ class FileStorageService:
     
     async def upload_file(self, file: UploadFile, path: str = "") -> dict:
         """Upload a file to the specified path"""
-        target_dir = self.storage_path / path
+        # Validate directory path
+        target_dir = self._validate_path(path)
         target_dir.mkdir(parents=True, exist_ok=True)
         
-        file_path = target_dir / file.filename
+        # Sanitize filename - remove path separators and parent references
+        safe_filename = Path(file.filename).name
+        if not safe_filename or safe_filename in ['.', '..']:
+            raise HTTPException(status_code=400, detail="Invalid filename")
+        
+        file_path = target_dir / safe_filename
+        
+        # Double-check the final path is still within storage
+        try:
+            file_path.resolve().relative_to(self.storage_path)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid file path")
         
         async with aiofiles.open(file_path, 'wb') as f:
             content = await file.read()
             await f.write(content)
         
         return {
-            "filename": file.filename,
+            "filename": safe_filename,
             "path": str(file_path.relative_to(self.storage_path)),
             "size": file_path.stat().st_size
         }
     
     def download_file(self, file_path: str) -> Optional[Path]:
         """Get the full path to a file for downloading"""
-        full_path = self.storage_path / file_path
+        full_path = self._validate_path(file_path)
         
         if full_path.exists() and full_path.is_file():
             return full_path
@@ -61,7 +93,7 @@ class FileStorageService:
     
     def delete_file(self, file_path: str) -> bool:
         """Delete a file or directory"""
-        full_path = self.storage_path / file_path
+        full_path = self._validate_path(file_path)
         
         if not full_path.exists():
             return False
@@ -75,7 +107,7 @@ class FileStorageService:
     
     def create_directory(self, dir_path: str) -> dict:
         """Create a new directory"""
-        full_path = self.storage_path / dir_path
+        full_path = self._validate_path(dir_path)
         full_path.mkdir(parents=True, exist_ok=True)
         
         return {

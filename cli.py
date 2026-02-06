@@ -58,6 +58,14 @@ class MiniCloudClient:
         if local_path is None:
             local_path = Path(remote_path).name
         
+        # Check if file exists and warn user
+        if Path(local_path).exists():
+            import sys
+            response_input = input(f"File '{local_path}' already exists. Overwrite? (y/N): ")
+            if response_input.lower() not in ['y', 'yes']:
+                print("Download cancelled.")
+                return None
+        
         with open(local_path, 'wb') as f:
             for chunk in response.iter_content(chunk_size=8192):
                 f.write(chunk)
@@ -179,7 +187,8 @@ def main():
         elif args.command in ['download', 'dl']:
             print(f"Downloading {args.file}...")
             local_path = client.download_file(args.file, args.output)
-            print(f"✅ Downloaded to: {local_path}")
+            if local_path:
+                print(f"✅ Downloaded to: {local_path}")
         
         elif args.command in ['delete', 'rm']:
             result = client.delete_file(args.path)
