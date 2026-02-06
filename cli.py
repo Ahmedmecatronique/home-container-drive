@@ -60,7 +60,6 @@ class MiniCloudClient:
         
         # Check if file exists and warn user
         if Path(local_path).exists():
-            import sys
             response_input = input(f"File '{local_path}' already exists. Overwrite? (y/N): ")
             if response_input.lower() not in ['y', 'yes']:
                 print("Download cancelled.")

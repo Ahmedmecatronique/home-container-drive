@@ -367,10 +367,23 @@
                 const data = await response.json();
                 const sizeInMB = (data.total_size / (1024 * 1024)).toFixed(2);
                 
-                document.getElementById('storageInfo').innerHTML = `
-                    <span><strong>${data.file_count}</strong> files</span>
-                    <span><strong>${sizeInMB} MB</strong> used</span>
-                `;
+                const storageInfoDiv = document.getElementById('storageInfo');
+                storageInfoDiv.innerHTML = '';
+                
+                const filesSpan = document.createElement('span');
+                const filesCount = document.createElement('strong');
+                filesCount.textContent = data.file_count;
+                filesSpan.appendChild(filesCount);
+                filesSpan.appendChild(document.createTextNode(' files'));
+                
+                const sizeSpan = document.createElement('span');
+                const sizeStrong = document.createElement('strong');
+                sizeStrong.textContent = `${sizeInMB} MB`;
+                sizeSpan.appendChild(sizeStrong);
+                sizeSpan.appendChild(document.createTextNode(' used'));
+                
+                storageInfoDiv.appendChild(filesSpan);
+                storageInfoDiv.appendChild(sizeSpan);
             } catch (error) {
                 console.error('Error loading storage info:', error);
             }
