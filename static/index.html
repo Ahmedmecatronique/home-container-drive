@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>HOME CONTAINER DRIVE</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="/static/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script defer src="/static/app.js"></script>
+</head>
+<body>
+
+
+<!-- ======= BOUTON MENU (caché avant login) ======= -->
+ <div id="sidebar-overlay"></div>
+<button id="menu-btn"><i class="fa-solid fa-bars"></i></button>
+
+<!-- ====================== SIDEBAR ====================== -->
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">menu </div>
+
+    <nav class="sidebar-menu">
+
+        <button class="sidebar-item" data-section="dashboard">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>Dashboard</span>
+        </button>
+
+        <button class="sidebar-item active" data-section="workspace">
+            <i class="fa-solid fa-folder-open"></i>
+            <span>Workspace</span>
+        </button>
+
+        <!-- 🔵 NOUVEAU : visible pour tout le monde -->
+        <button class="sidebar-item" data-section="private">
+            <i class="fa-solid fa-user-lock"></i>
+            <span>Espace Privé</span>
+        </button>
+
+        <button class="sidebar-item" data-section="chat">
+            <i class="fa-solid fa-comments"></i>
+            <span>Chat</span>
+        </button>
+
+        <button class="sidebar-item" data-section="settings">
+            <i class="fa-solid fa-gear"></i>
+            <span>Paramètres</span>
+        </button>
+
+        <button class="sidebar-item logout-btn" id="logout-btn">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            <span>Déconnexion</span>
+        </button>
+    </nav>
+</aside>
+
+
+<!-- ====================== CONTENU PRINCIPAL ====================== -->
+<div class="app-shell">
+
+    <main class="main">
+
+        <!-- DASHBOARD -->
+        <section id="section-dashboard" class="page-section hidden card">
+            <h2>Dashboard</h2>
+            <p class="muted small">Statistiques globales du stockage.</p>
+            <div id="dashboard-content"></div>
+        </section>
+
+        <!-- WORKSPACE -->
+        <section id="section-workspace" class="page-section card">
+            <h2>Workspace partagé</h2>
+            <p class="muted small">Après connexion tu pourras envoyer/lire des fichiers.</p>
+
+            <div class="workspace-actions">
+                <button id="refresh-files" class="btn btn-outline" disabled>Rafraîchir</button>
+                <label class="btn btn-secondary">
+                    Importer un fichier
+                    <input type="file" id="file-input" hidden>
+                </label>
+            </div>
+
+            <div id="files-list" class="files-list empty">
+                <p>Aucun fichier. Connecte-toi.</p>
+            </div>
+        </section>
+
+        <!-- ESPACE PRIVÉ -->
+        <section id="section-private" class="page-section hidden card">
+            <h2>Espace Privé</h2>
+            <p class="muted small">Fichiers privés du compte.</p>
+
+            <div class="workspace-actions">
+                <label class="btn btn-secondary">
+                    Importer fichier
+                    <input type="file" id="private-file-input" hidden>
+                </label>
+            </div>
+
+            <div id="private-files-list" class="files-list empty">
+                <p>Aucun fichier privé.</p>
+            </div>
+        </section>
+
+        <!-- CHAT -->
+        <section id="section-chat" class="page-section hidden card">
+            <h2>Chat</h2>
+            <p class="muted small">Bientôt disponible.</p>
+        </section>
+
+        <!-- SETTINGS -->
+        <section id="section-settings" class="page-section hidden card">
+            <h2>Paramètres</h2>
+            <p class="muted small">Gestion du compte.</p>
+        </section>
+
+    </main>
+
+    <footer class="footer">
+        Prototype local – by ahmed ghfiri ©
+    </footer>
+</div>
+
+<!-- ====================== AUTH OVERLAY ====================== -->
+<div id="auth-overlay" class="auth-overlay">
+    <div class="auth-card">
+
+        <div class="auth-header">
+            <h1>HOME CONTAINER DRIVE</h1>
+            <p>Connecte-toi ou crée ton compte.</p>
+        </div>
+
+        <div class="auth-tabs">
+            <button id="tab-login" class="auth-tab active">Connexion</button>
+            <button id="tab-register" class="auth-tab">Créer un compte</button>
+            <button id="tab-forgot" class="auth-tab">Mot de passe oublié</button>
+        </div>
+
+        <div id="auth-status" class="status"></div>
+
+        <div class="auth-body">
+
+            <!-- LOGIN -->
+            <form id="login-form" class="form auth-view" data-view="login">
+                <label>Nom d’utilisateur
+                    <input type="text" id="login-username" required>
+                </label>
+                <label>Mot de passe
+                    <input type="password" id="login-password" required>
+                </label>
+                <button class="btn btn-primary">Se connecter</button>
+            </form>
+
+            <!-- REGISTER -->
+            <form id="register-form" class="form auth-view hidden" data-view="register">
+                <label>Nom d’utilisateur
+                    <input type="text" id="register-username" required>
+                </label>
+                <label>Mot de passe
+                    <input type="password" id="register-password" required>
+                </label>
+                <label>Confirmer
+                    <input type="password" id="register-password2" required>
+                </label>
+                <button class="btn btn-primary">Créer le compte</button>
+            </form>
+
+            <!-- FORGOT -->
+            <form id="forgot-form" class="form auth-view hidden" data-view="forgot">
+                <label>Nom complet
+                    <input type="text" id="forgot-fullname" required>
+                </label>
+                <label>Nom d’utilisateur
+                    <input type="text" id="forgot-username" required>
+                </label>
+                <label>Téléphone
+                    <input type="tel" id="forgot-phone" required>
+                </label>
+                <button class="btn btn-primary">Envoyer</button>
+            </form>
+
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,17 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# Database
+home_container.db
+
+# User data (NE JAMAIS PUSH)
+data/
+
+# Logs
+logs/
+
+# OS / IDE
+.DS_Store
+.vscode/

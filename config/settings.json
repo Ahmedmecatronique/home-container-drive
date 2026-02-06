@@ -1,0 +1,11 @@
+{
+  "project_name": "HOME_CONTAINER_DRIVE",
+  "version": "1.0",
+  "author": "Ahmed",
+  "services": {
+    "web_dashboard": false,
+    "docker_manager": false,
+    "mqtt": false,
+    "sensors": false
+  }
+}
