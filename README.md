@@ -5,6 +5,7 @@ A lightweight, self-hosted cloud storage solution built with FastAPI, perfect fo
 ## 🌟 Features
 
 - **Fast & Lightweight**: Built with FastAPI for high performance
+- **Secure**: All known vulnerabilities patched (FastAPI 0.109.2, python-multipart 0.0.22)
 - **Portable**: Runs on Raspberry Pi, x86, ARM devices
 - **Docker Support**: Easy deployment with Docker and Docker Compose
 - **Web Interface**: Beautiful, responsive web UI for file management
@@ -13,6 +14,7 @@ A lightweight, self-hosted cloud storage solution built with FastAPI, perfect fo
 - **File Management**: Upload, download, delete files and create folders
 - **Directory Navigation**: Browse through folders with ease
 - **Storage Statistics**: View total storage usage and file count
+- **Security Hardened**: Path traversal protection, XSS prevention, input validation
 
 ## 🚀 Quick Start
 
