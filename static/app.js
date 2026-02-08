@@ -350,6 +350,11 @@ document.addEventListener("DOMContentLoaded", () => {
             const section = btn.dataset.section;
             showSection(section);
 
+            // Si on va sur la section settings, charger les préférences
+            if (section === "settings") {
+                if (currentUser) loadSettings();
+            }
+
             // refermer le menu après clic
             if (sidebar && appShell) {
                 sidebar.classList.remove("open");
@@ -392,6 +397,145 @@ document.addEventListener("DOMContentLoaded", () => {
             appShell.style.marginLeft = "0";
         });
     }
+
+    /***** SETTINGS: charge / sauvegarde / mot de passe / blocages *****/
+    async function loadSettings() {
+        const statusEl = $("settings-status");
+        if (!statusEl) return;
+        if (!currentUser) {
+            statusEl.textContent = "Connecte-toi pour accéder aux paramètres.";
+            statusEl.className = "status status-error";
+            return;
+        }
+        statusEl.textContent = "Chargement...";
+        statusEl.className = "status status-info";
+        try {
+            const resp = await fetch(API_BASE + "/auth/settings/" + encodeURIComponent(currentUser));
+            if (!resp.ok) {
+                statusEl.textContent = "Impossible de charger les paramètres.";
+                statusEl.className = "status status-error";
+                return;
+            }
+            const data = await resp.json();
+            const s = data.settings || {};
+            $("setting-theme").value = s.theme || "light";
+            $("setting-language").value = s.language || "fr";
+            $("setting-notifications").checked = !!s.notifications;
+            $("setting-default-path").value = s.default_path || "";
+            renderBlockedList(s.blocked || []);
+            statusEl.textContent = "Paramètres chargés.";
+            statusEl.className = "status status-success";
+        } catch (err) {
+            console.error(err);
+            statusEl.textContent = "Erreur réseau.";
+            statusEl.className = "status status-error";
+        }
+    }
+
+    async function saveSettings() {
+        const statusEl = $("settings-status");
+        if (!statusEl) return;
+        if (!currentUser) {
+            statusEl.textContent = "Connecte-toi.";
+            statusEl.className = "status status-error";
+            return;
+        }
+        const payload = {
+            username: currentUser,
+            settings: {
+                theme: $("setting-theme").value,
+                language: $("setting-language").value,
+                notifications: !!$("setting-notifications").checked,
+                default_path: $("setting-default-path").value.trim()
+            }
+        };
+        statusEl.textContent = "Enregistrement...";
+        statusEl.className = "status status-info";
+        try {
+            const resp = await fetch(API_BASE + "/auth/settings/update", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(payload)
+            });
+            if (!resp.ok) {
+                const err = await resp.json().catch(() => ({}));
+                statusEl.textContent = err.detail || "Erreur lors de la sauvegarde.";
+                statusEl.className = "status status-error";
+                return;
+            }
+            const data = await resp.json();
+            statusEl.textContent = "Paramètres sauvegardés.";
+            statusEl.className = "status status-success";
+            renderBlockedList(data.settings.blocked || []);
+        } catch (err) {
+            console.error(err);
+            statusEl.textContent = "Erreur réseau";
+            statusEl.className = "status status-error";
+        }
+    }
+
+    function renderBlockedList(list) {
+        const el = $("blocked-list");
+        if (!el) return;
+        if (!list || list.length === 0) {
+            el.textContent = "Aucun utilisateur bloqué.";
+        } else {
+            el.innerHTML = list.map(u => `<div>${u}</div>`).join("");
+        }
+    }
+
+    async function handleChangePassword(e) {
+        e.preventDefault();
+        const status = $("change-password-status");
+        const oldp = $("old-password").value;
+        const newp = $("new-password").value;
+        const newp2 = $("new-password2").value;
+        if (!oldp || !newp) { status.textContent = "Remplis tous les champs."; status.className = "status status-error"; return; }
+        if (newp !== newp2) { status.textContent = "Les nouveaux mots de passe ne correspondent pas."; status.className = "status status-error"; return; }
+        status.textContent = "Modification en cours..."; status.className = "status status-info";
+        try {
+            const resp = await fetch(API_BASE + "/auth/change_password", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({username: currentUser, old_password: oldp, new_password: newp})
+            });
+            if (!resp.ok) {
+                const err = await resp.json().catch(() => ({}));
+                status.textContent = err.detail || "Erreur";
+                status.className = "status status-error";
+                return;
+            }
+            status.textContent = "Mot de passe modifié.";
+            status.className = "status status-success";
+            $("old-password").value = ""; $("new-password").value = ""; $("new-password2").value = "";
+        } catch (err) {
+            console.error(err);
+            status.textContent = "Erreur réseau";
+            status.className = "status status-error";
+        }
+    }
+
+    async function blockUser(action) {
+        const target = $("block-target").value.trim();
+        if (!target) { alert("Entrez un nom d’utilisateur."); return; }
+        try {
+            const resp = await fetch(API_BASE + "/auth/block_user", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({username: currentUser, target, action})
+            });
+            if (!resp.ok) { const err = await resp.json().catch(() => ({})); alert(err.detail || "Erreur"); return; }
+            const data = await resp.json();
+            renderBlockedList(data.blocked || []);
+            $("block-target").value = "";
+        } catch (err) { console.error(err); alert("Erreur réseau"); }
+    }
+
+    // listeners
+    $("save-settings")?.addEventListener("click", saveSettings);
+    $("change-password-form")?.addEventListener("submit", handleChangePassword);
+    $("block-btn")?.addEventListener("click", (e) => { e.preventDefault(); blockUser('block'); });
+    $("unblock-btn")?.addEventListener("click", (e) => { e.preventDefault(); blockUser('unblock'); });
 
     /***** Au démarrage : overlay login *****/
     if (menuBtn) menuBtn.style.display = "none"; // caché avant login

@@ -83,6 +83,11 @@ body {
     font-size: 1.25rem;
 }
 
+.card-section {
+    margin-top: 12px;
+    margin-bottom: 12px;
+}
+
 .muted {
     margin: 0 0 12px;
     color: var(--text-muted);

@@ -11,6 +11,7 @@ class User(Base):
     password_hash = Column(String, nullable=False)
     role = Column(String, nullable=False)  # "normal", "advanced", "admin"
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    settings = Column(String, nullable=True, default="{}")  # JSON string with user preferences
 
 
 class File(Base):

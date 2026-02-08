@@ -115,6 +115,73 @@
         <section id="section-settings" class="page-section hidden card">
             <h2>Paramètres</h2>
             <p class="muted small">Gestion du compte.</p>
+
+            <div id="settings-status" class="status"></div>
+
+            <div class="card-section">
+                <h3>Préférences</h3>
+                <label>Thème
+                    <select id="setting-theme">
+                        <option value="light">Clair</option>
+                        <option value="dark">Sombre</option>
+                    </select>
+                </label>
+
+                <label>Langue
+                    <select id="setting-language">
+                        <option value="fr">Français</option>
+                        <option value="en">Anglais</option>
+                    </select>
+                </label>
+
+                <label>Notifications
+                    <input type="checkbox" id="setting-notifications">
+                </label>
+
+                <label>Chemin workspace par défaut
+                    <input type="text" id="setting-default-path" placeholder="/data/users/username/workspace">
+                </label>
+
+                <div>
+                    <button id="save-settings" class="btn btn-primary">Enregistrer</button>
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="card-section">
+                <h3>Changer mot de passe</h3>
+                <form id="change-password-form" class="form">
+                    <label>Mot de passe actuel
+                        <input type="password" id="old-password" required>
+                    </label>
+                    <label>Nouveau mot de passe
+                        <input type="password" id="new-password" required>
+                    </label>
+                    <label>Confirmer
+                        <input type="password" id="new-password2" required>
+                    </label>
+                    <button class="btn btn-primary">Modifier</button>
+                </form>
+                <div id="change-password-status" class="status"></div>
+            </div>
+
+            <hr>
+
+            <div class="card-section">
+                <h3>Gérer blocages</h3>
+                <form id="block-user-form" class="form">
+                    <label>Nom d’utilisateur à bloquer/débloquer
+                        <input type="text" id="block-target" required>
+                    </label>
+                    <div style="margin-top:8px;">
+                        <button id="block-btn" class="btn btn-outline">Bloquer</button>
+                        <button id="unblock-btn" class="btn btn-outline">Débloquer</button>
+                    </div>
+                </form>
+                <div id="blocked-list" class="muted small">Aucun utilisateur bloqué.</div>
+            </div>
+
         </section>
 
     </main>

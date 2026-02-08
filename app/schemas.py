@@ -59,3 +59,25 @@ class Token(BaseModel):
     role: Optional[str] = None
     username: Optional[str] = None
 
+
+class ChangePasswordRequest(BaseModel):
+    username: str
+    old_password: str
+    new_password: str
+
+
+class SettingsUpdateRequest(BaseModel):
+    username: str
+    settings: dict
+
+
+class BlockUserRequest(BaseModel):
+    username: str
+    target: str
+    action: str  # "block" or "unblock"
+
+
+class SettingsOut(BaseModel):
+    username: str
+    settings: dict
+
